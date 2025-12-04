@@ -4,14 +4,15 @@ Simple Recursive Language Model (RLM) with REPL environment.
 
 from typing import Dict, List, Optional, Any 
 
-from .rlm import RLM
-from .repl import REPLEnv
-from .utils.llm import OpenAIClient
-from .utils.prompts import DEFAULT_QUERY, next_action_prompt, build_system_prompt
-from .utils import utils as utils
+import tinker
+from rlm import RLM
+from rlm.repl import REPLEnv
+from rlm.utils.llm import OpenAIClient, TinkerClient
+from rlm.utils.prompts import DEFAULT_QUERY, next_action_prompt, build_system_prompt
+import rlm.utils.utils as utils
 
-from .logger.root_logger import ColorfulLogger
-from .logger.repl_logger import REPLEnvLogger
+from rlm.logger.root_logger import ColorfulLogger
+from rlm.logger.repl_logger import REPLEnvLogger
 
 
 class RLM_REPL(RLM):
@@ -21,6 +22,7 @@ class RLM_REPL(RLM):
     
     def __init__(self, 
                  api_key: Optional[str] = None, 
+                 sampling_client: Optional[tinker.SamplingClient] = None,
                  model: str = "gpt-5",
                  recursive_model: str = "gpt-5",
                  max_iterations: int = 20,
@@ -30,7 +32,8 @@ class RLM_REPL(RLM):
         self.api_key = api_key
         self.model = model
         self.recursive_model = recursive_model
-        self.llm = OpenAIClient(api_key, model) # Replace with other client
+        # self.llm = OpenAIClient(api_key, model) # Replace with other client
+        self.llm = TinkerClient(sampling_client, model)
         
         # Track recursive call depth to prevent infinite loops
         self.repl_env = None

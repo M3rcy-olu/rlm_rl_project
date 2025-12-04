@@ -8,47 +8,8 @@ import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Optional
-import google.genai as genai
 
-from .rlm import RLM
-
-class GoogleAIClient:
-    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-pro"):
-        # self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
-        self.api_key = ""
-        if not self.api_key:
-            raise ValueError(
-                "Google API key is required. Set GOOGLE_API_KEY env var or pass api_key."
-            )
-
-        self.model = model
-        self.client = genai.Client(api_key = self.api_key)
-
-    def completion(
-        self,
-        messages: list[dict[str, str]] | str,
-        max_tokens: Optional[int] = None,
-        **kwargs,
-    ) -> str:
-        # Normalize messages → single user prompt (simplest mapping)
-        if isinstance(messages, str):
-            prompt = messages
-        else:
-            # Concatenate as "role: content"
-            prompt = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
-
-        res = self.client.models.generate_content(
-            model = self.model,
-            contents = prompt,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=max_tokens,
-                **{k: v for k, v in kwargs.items() if v is not None},
-            )
-            if max_tokens or kwargs
-            else None,
-        )
-        # Gemini returns candidates; pick first text part
-        return res.text
+from rlm import RLM
 
 # Simple sub LM for REPL environment. Note: This could also be just the RLM itself!
 class Sub_RLM(RLM):
@@ -56,20 +17,16 @@ class Sub_RLM(RLM):
     
     def __init__(self, model: str = "gpt-5"):
         # Configuration - model can be specified
+        # self.api_key = os.getenv("OPENAI_API_KEY")
+        # if not self.api_key:
+        #     raise ValueError("OPENAI_API_KEY environment variable is required")
         
-        client = "google"
-        if client == "open":
-            self.api_key = os.getenv("OPENAI_API_KEY")
-            if not self.api_key:
-                raise ValueError("OPENAI_API_KEY environment variable is required")
-        
-            self.model = model
+        self.model = model
 
-            # Initialize OpenAI client
-            from rlm.utils.llm import OpenAIClient
-            self.client = OpenAIClient(api_key=self.api_key, model=model)
-        else:
-            self.client = GoogleAIClient()    
+        # Initialize OpenAI client
+        from rlm.utils.llm import OpenAIClient, TinkerClient
+        # self.client = OpenAIClient(api_key=self.api_key, model=model)
+        self.client = TinkerClient(model=model)
         
     
     def completion(self, prompt) -> str:
@@ -79,8 +36,7 @@ class Sub_RLM(RLM):
         try:
             # Handle both string and dictionary/list inputs
             response = self.client.completion(
-                messages=prompt,
-                timeout=300
+                messages=prompt
             )
             
             return response
