@@ -15,7 +15,7 @@ from .rlm import RLM
 class GoogleAIClient:
     def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-pro"):
         # self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
-        self.api_key = "AIzaSyBfWtCIpu40FCUXXL6J2vnV_smBeEKPnwo"
+        self.api_key = ""
         if not self.api_key:
             raise ValueError(
                 "Google API key is required. Set GOOGLE_API_KEY env var or pass api_key."
