@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Optional
 
-from rlm import RLM
+from .rlm import RLM
 
 # Simple sub LM for REPL environment. Note: This could also be just the RLM itself!
 class Sub_RLM(RLM):
@@ -24,7 +24,7 @@ class Sub_RLM(RLM):
         self.model = model
 
         # Initialize OpenAI client
-        from rlm.utils.llm import OpenAIClient, TinkerClient
+        from .utils.llm import OpenAIClient, TinkerClient
         # self.client = OpenAIClient(api_key=self.api_key, model=model)
         self.client = TinkerClient(model=model)
         
@@ -201,7 +201,7 @@ class REPLEnv:
         # Write context JSON to temporary directory using absolute (temp dir) path
         if context_json is not None:
             context_path = os.path.join(self.temp_dir, "context.json")
-            with open(context_path, "w") as f:
+            with open(context_path, "w", encoding="utf-8") as f:
                 json.dump(context_json, f, indent=2)
             context_code = (
                 f"import json\n"
@@ -212,7 +212,7 @@ class REPLEnv:
         
         if context_str is not None:
             context_path = os.path.join(self.temp_dir, "context.txt")
-            with open(context_path, "w") as f:
+            with open(context_path, "w", encoding="utf-8") as f:
                 f.write(context_str)
             context_code = (
                 f"import os\n"

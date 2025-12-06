@@ -5,14 +5,14 @@ Simple Recursive Language Model (RLM) with REPL environment.
 from typing import Dict, List, Optional, Any 
 
 import tinker
-from rlm import RLM
-from rlm.repl import REPLEnv
-from rlm.utils.llm import OpenAIClient, TinkerClient
-from rlm.utils.prompts import DEFAULT_QUERY, next_action_prompt, build_system_prompt
-import rlm.utils.utils as utils
+from .rlm import RLM
+from .repl import REPLEnv
+from .utils.llm import OpenAIClient, TinkerClient
+from .utils.prompts import DEFAULT_QUERY, next_action_prompt, build_system_prompt
+from .utils import utils
 
-from rlm.logger.root_logger import ColorfulLogger
-from rlm.logger.repl_logger import REPLEnvLogger
+from .logger.root_logger import ColorfulLogger
+from .logger.repl_logger import REPLEnvLogger
 
 
 class RLM_REPL(RLM):
