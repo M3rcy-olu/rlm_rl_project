@@ -184,7 +184,7 @@
 </style>
 
 	  <title>The Platonic Representation Hypothesis</title>
-      <meta property="og:title" content="The Platonic Representation Hypothesis" />
+      <meta property="og:title" content="SmolRLM: Can Small LLMs Elicit Recursive Strategies as Recursive Language Models?" />
 			<meta charset="UTF-8">
   </head>
 
@@ -197,15 +197,15 @@
 						<table class="header" align=left>
 								<tr>
 									<td colspan=4>
-										<span style="font-size: 32px; font-family: 'Courier New', Courier, monospace; /* Adds fallbacks */">A Grand Unified Theory of Deep Learning</span>
+										<span style="font-size: 32px; font-family: 'Courier New', Courier, monospace; /* Adds fallbacks */">SmolRLM: Can Small LLMs Elicit Recursive Strategies as Recursive Language Models?</span>
 									</td>
 								</tr>
 								<tr>
 										<td align=left>
-												<span style="font-size:17px"><a href="your_website">Your name</a></span>
+												<span style="font-size:17px"><a href="https://github.com/M3rcy-olu">Mercy Dada</a></span>
 										</td>
 										<td align=left>
-												<span style="font-size:17px"><a href="your_partner's_website">Your partner's name</a></span>
+												<span style="font-size:17px"><a href="your_partner's_website">Chris Mejia</a></span>
 										</td>
 								<tr>
 									<td colspan=4 align=left><span style="font-size:18px">Final project for 6.7960, MIT</span></td>
@@ -221,42 +221,89 @@
           <!-- table of contents here -->
           <div style="position:fixed; max-width:inherit; top:max(20%,120px)">
               <b style="font-size:16px">Outline</b><br><br>
-              <a href="#intro">Introduction</a><br><br>
-              <a href="#does_x_do_y">Does X do Y?</a><br><br>
-              <a href="#implications_and_limitations">Implications and limitations</a><br><br>
+              <a href="#intro">Introduction & Motivation</a><br><br>
+              <a href="#rrworks">Related Works</a><br><br>
+              <a href="#methods">Methods</a><br><br>
+              <a href="#results">Results</a><br><br>
+              <a href="#discussion">Discussion</a><br><br>
+              <a href="#implications_and_limitations">Implications and Limitations</a><br><br>
           </div>
 				</div>
 		    <div class="main-content-block">
             <!--You can embed an image like this:-->
-            <img src="./images/your_image_here.png" width=512px/>
+            <img src="./imgs/nlp_cover_image.png" width=512px alt="nlp_cover_image"/>
 		    </div>
 		    <div class="margin-right-block">
-						Caption for the image.
+						We asked our LM to generate an image representing SLMs competing on par with LLMs
 		    </div>
 		</div>
-
+	
+		<!--INTRODUCTION Section-->
     <div class="content-margin-container" id="intro">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
-						<h1>Introduction</h1>
-            Motivate your project. What question are you asking. Why is it unanswered so far? What gap in the literature or practice are you filling?
-            Why is it important?
+						<h1>Introduction & Motivation</h1>
+            			Beginning around 2020, Large Language Models (LLMs) have seen significant improvement in their capabilities and performance at an unprecedented pace. Paradigms such as chain-of-thought (CoT) and ReAct have sparked numerous advancements in LLM abilities to reason & take actions when answering or solving prompts. Today, current state-of-the-art (SOTA) models boast impressive performance in many areas, from mathematical & problematic reasoning, to creative expression in writing and art, to writing code. Driving these improvements forwards is the theme of “increasing scale” that has largely influenced experimental and technical decisions. Under this ideology, many of the recent improvements to LLM capabilities can be attributed to increasing the scale of model sizes, increasing the scale of dataset used to pre-train LLMs, and increasing scale in the amount of context LLMs can handle.
+						<br/>
+						<br/>
+						Given current LLM capabilities, the deployment scene sees LLMs being increasingly implemented in diverse domains. As users are continuously increasing the breadth of applications LLMs are integrated with and the depth of their functionalities, successful deployments require LLMs to be able to handle long contexts and precise focus over long time horizons. This occurs because many of the applications LLMs are integrated with have primary objectives that require many components and span over long durations. Over time the pursuit of these objectives builds up potentially enormous amounts of these components that together form a context that often cannot be processed in a single instance. Yet, effective processing of this context is necessary for achieving the primary objective. As a result, an LLM’s effective integration depends significantly on its ability to precisely focus on goals over long timeframes or context horizons as they become more integrated in agentic and system work flows. This nature provides a reason for desiring LLMs that can effectively extract relevant information from large amounts of context. Harking back to the theme of increasing scales, researchers and industry have placed significant focus on tackling this challenge through increasing the size of LLM context windows from ~16k tokens (GPT 3) to ~400K tokens (GPT 5) for many of the SOTA models. This approach follows the notion that, if an LLM can accept as an input the entire context present for an objective, we can instead leverage the attention mechanisms of LLMs to process the context rather than preprocessing the context before it is passed as input. Even though this approach has been shown to perform well on benchmarks testing LLM recall on large contexts, in practice users experience the well-known phenomenon called “context rot” that plagues this approach. This phenomenon describes the experience whereby as the amount of context provided to the LLM increases, the LLMs intelligence over the context and with respect to its objective seems to degrade. With this failure mode being historically difficult to both describe and benchmark, it has required research to approach this issue from empirical intuitions. 
+						<br/>
+						<br/>
+						Researchers have investigated a variety of methods to mitigate performance degradation during long context inference. Most recently, (Zhang, 2025) proposed the paradigm of Recursive Language Models (RLMs), which we explore further in our work. In this paradigm, an RLM is an LM that is capable of issuing sub-LM calls for intermediate computation. The RLM is only provided the user’s query or problem statement, and is provided the context as a variable in a Python REPL (code execution environment). The LM is prompted to engage with the REPL to write code to examine its content and issue sub-LM calls however it sees fit. Because of this framework, RLMs can engage with context well beyond their context limits without ever needing to ingest the full context and are only limited by the environments available memory. This paradigm leverages two of the most forefront paradigms in LM intelligence: CoT-based reasoning and LMs are powerful coders. Intuitively, the appeal of RLM inference is its environment where an LM can leverage its reasoning and coding skills. After engaging with the REPL and issuing sub-LM calls the model is prompted to provide a final answer. Zhang reports outstanding results using the RLM framework on long context tasks, but only tested the paradigm on large closed source frontier models. This inspires the question, how small or weak can RLMs be? Do smaller models benefit from using the RLM framework?
+
 		    </div>
 		    <div class="margin-right-block">
-						Margin note that clarifies some detail #main-content-block for intro section.
-		    </div>
+						<!--Margin for Clarifications if nessessary-->
+			</div>
 		</div>
 
-		<div class="content-margin-container" id="does_x_do_y">
+		<!--RELATED WORKS Section-->
+		<div class="content-margin-container" id="rrworks">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
-					<h1>Does X do Y?</h1>
-				  It is well known that Y does Y. And this has raised the question does X do Y? Because if Y does Y then it stands to reason that X does Y.
-          But we cannot answer this until we realize the Z implies Y and X can be linked to Z.<br><br>
+						<h1>Related Works</h1>
+            			Building up to the RLM paradigm, previous studies point to the experience of “context rot” to be genuine and not solely the user's perspective despite its notorious difficulty to benchmark. Using a more formal definition, “context rot” describes the relationship that as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases. Researchers from Anthropic find that this characteristic arises due to the limited “attention budget” that gets stretched thin when a model has to capture pairwise relationships within large contexts (Effective Context Engineering for AI Agents, 2025). Furthermore, Liu et al., observe that LLMs exhibit a U-shaped performance curve with respect to the placement of information within a long context. This performance curve demonstrates that when task relevant information is placed in the middle of a large body of context rather than at the beginning or end, LLMs perform significantly worse on their tasks (Liu et al., 2024). Techniques such as position interpolation (Chen et al., 2023) that have been used to increase context window sizes also offer architectural insights into these degradation observations. Given that LLMs are often trained on comparatively smaller sequences then architecturally interpolated to handle large contexts, the attention patterns developed on the shorter sequences begin to struggle once the input sequences become much larger. Such insights are demonstrated in (Liu et al., 2024) findings, where findings show that performance on the Flan-T5-XXL model instruction-tuned on sequences of 2048 tokens, begins to degrade when handling context longer than 2048 tokens. In light of this, prior research has developed techniques to mitigate these limitations from a model architecture design perspective. For example, (An et al., 2024) introduce String positional encoding (STRING) an approach to mitigate the tendency for learned token position frequency distributions to be left-skewed due to undertraining on long sequences. This left-skewing phenomenon hinders LLM performance on long-range tasks. While STRING and similar approaches are shown to improve LLM performance on long contexts, limitations remain as their effectiveness is bounded by architectural constraints from which gains begin to diminish once exceeded.
+						<br/>
+						<br/>
+						<img id = "repl_dia" src="./imgs/repl_diagram.png" width=512px alt="Figure 1: RLM framework diagram (Zhang, 2025)"/>
+						<br/>
+						<br/>
+						Given the limitations of previous approaches, (Zhang, 2025) introduces Recursive Language Models (RLM) as a new, promising paradigm. This approach centers around the notion that LLMs can be treated as blocks for managing context and by recursively dividing some context across two LLM calls then combining their outputs using a third LLM call, we can avoid this degradation that occurs with inputting large context. Zhang’s work shows that RLM is an effective approach for ensuring minimal working context when answering prompts. Additionally, initial findings show RLM to out perform previous reasoning strategies on long-context tasks and that LLMs can employ recursive strategies such as peeking, partitioning, grepping, and finally summarizing long contexts to derive an answer. These together reveal the potential of RLM to mitigate context rot. However, the findings are limited only to tests on GPT-5, which by current estimate is significantly larger than many of LLMs currently in application. Therefore, to generalize RLM for context management it is necessary to understand its effects when implemented with smaller models. Furthermore, it is necessary to understand the thresholds while LLMs are no longer able to make use of this framework. 
+					</div>
+		    <div class="margin-right-block">
+						Figure 1: Diagram of the RLM environment for a recursive depth of one (Zhang, 2025)  <a href="#repl_dia">[1]</a>
+			</div> 
+		</div>
 
-          Now let's write some math!<br>
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Our Goal</h1>
+            In this work we expand on the developments of RLMs to investigate the potential of RLM as a context managing strategy for LLMs of much smaller size. Additionally, we investigate whether reinforcement learning strategies can be applied to elicit good recursion strategies. Drawing from the initial observations from (Zhang, 2025), recursion strategies appear to emerge from the largest models. However, we seek to explore whether through reinforcement learning if these strategies are also effective for smaller models and what other strategies might emerge that are more suitable for a smaller LLMs. 
+		    </div>
+		    <div class="margin-right-block">
+					<!---->
+		    </div>
+		</div>
+		
+		<!--METHODS Section-->
+		<div class="content-margin-container" id="methods">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+					<h1>Methods</h1>
+					We first perform an ablation study to understand the effect of the RLM framework on smaller open models. For this instance, we choose Qwen3-8B for its impressive reasoning and coding capabilities at only eight billion parameters. Given that the model will be asked to reason and code across multiple steps, it makes sense that a model whose baseline is strong at coding and reasoning tasks would serve well as an RLM. We implement the RLM framework with the generously provided scripts from (Zhang, 2025). 
+					Zhang provides an RLM prompt that instructs the model to format code blocks to be executed in a Python REPL, scripts for parsing out and executing code blocks, and a framework for evaluating sub-LLM queries. We modified Zhang’s script to use the Tinker API for all inference. We also modified the system prompt to provide more guidance on how to approach and properly format answers for the classification problems. 
+					We then fine-tune Qwen3-8B through Reinforcement Learning on long-context tasks from the OOLONG dataset and evaluate its performance on a hold-out set. Particularly, we use the tools and frameworks provided by the Tinker API from Thinking Machines taking inspiration from their various reinforcement learning environments. The fine-tuned model is then evaluated on the same hold-outset. 
+			</div>
+		    <div class="margin-right-block" style="transform: translate(0%, -100%);">  you can move the margin notes up and down with translate 
+		    </div>
+		</div>
+
+		<!--Now let's write some math!<br>
           <center>
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <mrow>
@@ -273,23 +320,105 @@
               <mo>=</mo>
               <mi>x</mi>
             </math>
-          </center>
-          <br>
-          It's probably best to ask an LLM to help do the web
-          formatting for math. You can tell it "convert this latex equation into MathML: $$\frac{\partial dy}{\partial dx} = x$$"
-          But it took me a few tries. So, if you get frustrated, you can embed an image of the equation, or use other packages for
-          rendering equations on webpages.
-		    </div>
-		    <div class="margin-right-block" style="transform: translate(0%, -100%);"> <!-- you can move the margin notes up and down with translate -->
-          Interestingly, Plato also asked if X does Y, in <a href="#ref_1">[1]</a>.
-		    </div>
-		</div>
-
+          </center>-->
+		<!--Another section to add under methods Section-->
+		
 		<div class="content-margin-container">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
-            <h1>Another section</h1>
+            <h1>Dataset</h1>
+            To maintain consistency with (Zhang, 2025) we also utilized a subset of the OOLONG dataset (Bertsch et al., 2025). OOLONG is a recent dataset that aims to quantify the performance of LLMs on long context counting, search, and aggregation tasks. The dataset contains examples of somewhat realistic long contexts where current LLMs are still known to struggle on. OOLONG examples contain a context, query, and the expected answer to the query. The context length scales from 1K tokens to 512k tokens. With this dataset models are tasked with utilizing information in the context to answer the query
+			<br/>
+			OOLONG contains two distinct datasets: oolong-synth and oolong-real. The synth dataset has contexts that are aggregations of examples from existing datasets, and real is transcriptions of Dungeons and Dragons campaigns that the authors processed. For consistency with (Zhang, 2025) we also choose to utilize oolong-synth. The oolong-synth dataset is composed of two subsets. The first subset, trec_coarse, contains samples for question type classification. The second subset, spam contains questions for SMS spam classification. Beyond being a good collection of long-context problems, OOLONG provides queries that require the model to perform some sort of “fuzzy” inference, they are not just tasks that can be solved with pure code. We believe this is imperative for learning how to use recursive model calls effectively.
+			We delineate the spam subset to be our reinforcement learning training set due to its variety of questions related to SMS spam found in the dataset and its variety in answer granularity. We hypothesize that this will require LLMs to learn good strategies for handling different types of questions, that can then generalize outside of the dataset. 
+			<br/>
+			<br/>
+			<img id = "context_ex" src="./imgs/example_context_img.png" width=512px alt="Figure 2: Example Input"/>
+			<br/>
+			<br/>
+			To match (Zhang, 2025) we utilize oolong-synth’s trec_coarse subset for our evaluation. This consists of question type classification tasks. The model must classify records as one of six classes, and then perform an aggregation or counting task. Due to time and compute constraints, we limit our evaluation to context sizes up to 64k. The Qwen3-8b technical report notes a context window of 132k tokens, but this is only if you apply YaRN positional embedding extension method which is not possible through the Tinker API. As such, Tinker hosts the model with a fixed context size of 32k tokens. So, we evaluate the LLM-only approach up to context sizes of 16k tokens.
+			For our training dataset we utilize oolong-synth’s spam subset. This consists of aggregations of email logs that the model must classify as either “ham” or “spam.” This set matches the problem style of the evaluation set but is slightly easier as the model must only classify records as one of two categories compared to six. We chose this training and eval pair specifically to provide the model easier problems so that it focuses more on developing RLM strategies instead of learning classification. We train on the full spam subset, totaling 650 examples ranging from context lengths of 1024 tokens to 4,194,304 tokens.
+			</div>
+		    <div class="margin-right-block">
+					Figure 2: Example context for an input with 1028 tokens of context from the OOLONG-synth dataset. Here a model is queried to consider the subset of instances that are associated with user IDs 76063. Among instances associated with these users, the model is taked with finding if the label 'ham' more common, less common, or the same frequency as label 'spam'?  <a href="#context_ex">[2]</a>
+		    </div>
+		</div>	
+		
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Hyperparameters & RL Environment Design</h1>
+			We utilize the modified policy gradient objective <a href="https://tinker-docs.thinkingmachines.ai/losses">importance_sampling</a>from Tinker-Thinking Machines Lab. This aims to mitigate “sampling bias” which occurs when the sampling policy q is different from the learner policy p. With this objective our loss is the following:
+			<br/>
+			<br/>
+			<center> 
+					<math xmlns="http://www.w3.org/1998/Math/MathML">
+						<mrow>
+						<!-- 𝓛_IS(θ) -->
+						<mi>𝓛</mi>
+						<msub>
+							<mi>IS</mi>
+							<mi></mi>
+						</msub>
+						<mo>(</mo><mi>θ</mi><mo>)</mo>
+						<mo>=</mo>
+
+						<!-- Expectation  𝔼_{x~q}[ ... ] -->
+						<msub>
+							<mo>𝔼</mo>
+							<mrow>
+							<mi>x</mi>
+							<mo>~</mo>
+							<mi>q</mi>
+							</mrow>
+						</msub>
+
+						<mo>[</mo>
+
+						<!-- p_θ(x) / q(x) -->
+						<mfrac>
+							<mrow>
+							<msub>
+								<mi>p</mi>
+								<mi>θ</mi>
+							</msub>
+							<mo>(</mo><mi>x</mi><mo>)</mo>
+							</mrow>
+							<mrow>
+							<mi>q</mi>
+							<mo>(</mo><mi>x</mi><mo>)</mo>
+							</mrow>
+						</mfrac>
+
+						<!-- A(x) -->
+						<mi>A</mi>
+						<mo>(</mo><mi>x</mi><mo>)</mo>
+
+						<mo>]</mo>
+						<mo>,</mo>
+						</mrow>
+					</math>
+					</center>
+			<br/>
+			We choose the importance sampling objective over PPO, or other implemented RL objectives, due to its recurring presence in the tinker-cookbook RL examples. The examples were able to use the importance sampling objective to RL multi-turn tool use models and code generation models. As such, we decided to stick with what the smart folks at Tinker used.
+			Tinker only serves a small set of models and provides a recommended learning rate for each. We opted to use this without modification. 
+			We separated our training set into batches of size TODO FILL IN. For each problem in the batch, we create a group of size TODO FILL IN. We use these rewards to compute an advantage for each trajectory by subtracting the average reward of its group; these advantage scores are then used to weight the gradient updates, effectively reinforcing trajectories that perform better than their group's average.
+			In each episode, we initialize a new RLM REPL environment where the learning policy interacts. The context for the example is placed in the REPL environment, and the policy only receives the system prompt and the query. We process actions from the policy for code blocks and provide the output. The policy is allowed ten turns/steps per episode. If the model generates a final answer in an earlier iteration, the reward is computed and the episode ends.
+			For the sake of our training time, we placed a five minute timeout on sub-LLM queries and a five minute timeout on code block runtime. At first, we did not utilize timeouts but witnessed individual episodes taking up to one hour. Allowing such episodes would have made completing a full RL run on 650 examples intractable. When the model produces code that runs for 5 minutes it is given feedback that its code ran for too long and it is allowed to continue the episode. The model is also given feedback and allowed to continue if its code produces errors. 
+			In our environment, we do not provide per step rewards. Instead, we simply reward at the end of the trajectory depending on whether or not the model produced the correct answer. Correct answers are assigned a score of 1.0 and incorrect scores are assigned a score of 0.0. 
+            </div>
+		    <div class="margin-right-block">
+					
+		    </div>
+		</div>	
+		
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Video Template</h1>
             In this section we embed a video:
 						<video class='my-video' loop autoplay muted style="width: 725px">
 								<source src="./images/mtsh.mp4" type="video/mp4">
@@ -299,6 +428,8 @@
 					A caption for the video could go here.
 		    </div>
 		</div>
+
+		<!--RESULTS Section-->
 
 		<div class="content-margin-container" id="implications_and_limitations">
 				<div class="margin-left-block">
