@@ -208,7 +208,7 @@
 												<span style="font-size:17px"><a href="your_partner's_website">Chris Mejia</a></span>
 										</td>
 								<tr>
-									<td colspan=4 align=left><span style="font-size:18px">Final project for 6.7960, MIT</span></td>
+									<td colspan=4 align=left><span style="font-size:18px">Final project for Deep Learning 6.7960, MIT</span></td>
 								</tr>
 						</table>
 					</div>
@@ -224,9 +224,8 @@
               <a href="#intro">Introduction & Motivation</a><br><br>
               <a href="#rrworks">Related Works</a><br><br>
               <a href="#methods">Methods</a><br><br>
-              <a href="#results">Results</a><br><br>
-              <a href="#discussion">Discussion</a><br><br>
-              <a href="#implications_and_limitations">Implications and Limitations</a><br><br>
+              <a href="#results">Results & Discussion</a><br><br>
+              <a href="#implications_and_limitations">Limitations & Implications</a><br><br>
           </div>
 				</div>
 		    <div class="main-content-block">
@@ -297,8 +296,8 @@
 					<h1>Methods</h1>
 					We first perform an ablation study to understand the effect of the RLM framework on smaller open models. For this instance, we choose Qwen3-8B for its impressive reasoning and coding capabilities at only eight billion parameters. Given that the model will be asked to reason and code across multiple steps, it makes sense that a model whose baseline is strong at coding and reasoning tasks would serve well as an RLM. We implement the RLM framework with the generously provided scripts from (Zhang, 2025). 
 					Zhang provides an RLM prompt that instructs the model to format code blocks to be executed in a Python REPL, scripts for parsing out and executing code blocks, and a framework for evaluating sub-LLM queries. We modified Zhang’s script to use the Tinker API for all inference. We also modified the system prompt to provide more guidance on how to approach and properly format answers for the classification problems. 
-					We then fine-tune Qwen3-8B through Reinforcement Learning on long-context tasks from the OOLONG dataset and evaluate its performance on a hold-out set. Particularly, we use the tools and frameworks provided by the Tinker API from Thinking Machines taking inspiration from their various reinforcement learning environments. The fine-tuned model is then evaluated on the same hold-outset. 
-			</div>
+					We then fine-tune Qwen3-8B and Qwen3-32B through Reinforcement Learning on long-context tasks from the OOLONG dataset and evaluate its performance on a hold-out set. Particularly, we use the tools and frameworks provided by the Tinker API from Thinking Machines taking inspiration from their various reinforcement learning environments. The fine-tuned model is then evaluated on the same hold-outset.
+				</div>
 		    <div class="margin-right-block" style="transform: translate(0%, -100%);">  you can move the margin notes up and down with translate 
 		    </div>
 		</div>
@@ -337,8 +336,8 @@
 			<img id = "context_ex" src="./imgs/example_context_img.png" width=512px alt="Figure 2: Example Input"/>
 			<br/>
 			<br/>
-			To match (Zhang, 2025) we utilize oolong-synth’s trec_coarse subset for our evaluation. This consists of question type classification tasks. The model must classify records as one of six classes, and then perform an aggregation or counting task. Due to time and compute constraints, we limit our evaluation to context sizes up to 64k. The Qwen3-8b technical report notes a context window of 132k tokens, but this is only if you apply YaRN positional embedding extension method which is not possible through the Tinker API. As such, Tinker hosts the model with a fixed context size of 32k tokens. So, we evaluate the LLM-only approach up to context sizes of 16k tokens.
-			For our training dataset we utilize oolong-synth’s spam subset. This consists of aggregations of email logs that the model must classify as either “ham” or “spam.” This set matches the problem style of the evaluation set but is slightly easier as the model must only classify records as one of two categories compared to six. We chose this training and eval pair specifically to provide the model easier problems so that it focuses more on developing RLM strategies instead of learning classification. We train on the full spam subset, totaling 650 examples ranging from context lengths of 1024 tokens to 4,194,304 tokens.
+			Following Zhang (2025), we employ the trec_coarse subset of the oolong-synth benchmark for evaluation. This task requires the model to classify records into one of six categories, followed by aggregation or counting operations. We aim to evaluate context sizes ranging from 0 to 64k tokens. However, while the Qwen3-8b technical report notes a 132k context window (via YaRN), the Tinker API does not support this extension and enforces a fixed 32k limit. Consequently, we restrict the LLM-only baseline to a maximum context of 16k tokens. In contrast, our RLM framework allows us to bypass this limitation, enabling evaluation across the full target range, including 32k and 64k contexts.
+			For training, we utilize the oolong-synth spam subset. This dataset mirrors the structural style of the evaluation set (aggregating email logs) but poses a simpler binary classification task ("ham" vs. "spam") compared to the six-class evaluation task. We selected this specific pairing to minimize the difficulty of the classification task, thereby encouraging the model to prioritize the development of RLM retrieval strategies over complex classification logic. We trained on the full spam subset, comprising 650 examples with context lengths ranging from 1K to 4M tokens.
 			</div>
 		    <div class="margin-right-block">
 					Figure 2: Example context for an input with 1028 tokens of context from the OOLONG-synth dataset. Here a model is queried to consider the subset of instances that are associated with user IDs 76063. Among instances associated with these users, the model is taked with finding if the label 'ham' more common, less common, or the same frequency as label 'spam'?  <a href="#context_ex">[2]</a>
@@ -350,7 +349,7 @@
 				</div>
 		    <div class="main-content-block">
             <h1>Hyperparameters & RL Environment Design</h1>
-			We utilize the modified policy gradient objective <a href="https://tinker-docs.thinkingmachines.ai/losses">importance_sampling</a>from Tinker-Thinking Machines Lab. This aims to mitigate “sampling bias” which occurs when the sampling policy q is different from the learner policy p. With this objective our loss is the following:
+			We utilized the modified 'importance_sampling' policy gradient objective from the Tinker-Cookbook. This approach aims to mitigate sampling bias, which arises when the sampling policy q diverges from the learner policy p.
 			<br/>
 			<br/>
 			<center> 
@@ -402,19 +401,17 @@
 					</math>
 					</center>
 			<br/>
-			We choose the importance sampling objective over PPO, or other implemented RL objectives, due to its recurring presence in the tinker-cookbook RL examples. The examples were able to use the importance sampling objective to RL multi-turn tool use models and code generation models. As such, we decided to stick with what the smart folks at Tinker used.
-			Tinker only serves a small set of models and provides a recommended learning rate for each. We opted to use this without modification. 
-			We separated our training set into batches of size TODO FILL IN. For each problem in the batch, we create a group of size TODO FILL IN. We use these rewards to compute an advantage for each trajectory by subtracting the average reward of its group; these advantage scores are then used to weight the gradient updates, effectively reinforcing trajectories that perform better than their group's average.
-			In each episode, we initialize a new RLM REPL environment where the learning policy interacts. The context for the example is placed in the REPL environment, and the policy only receives the system prompt and the query. We process actions from the policy for code blocks and provide the output. The policy is allowed ten turns/steps per episode. If the model generates a final answer in an earlier iteration, the reward is computed and the episode ends.
-			For the sake of our training time, we placed a five minute timeout on sub-LLM queries and a five minute timeout on code block runtime. At first, we did not utilize timeouts but witnessed individual episodes taking up to one hour. Allowing such episodes would have made completing a full RL run on 650 examples intractable. When the model produces code that runs for 5 minutes it is given feedback that its code ran for too long and it is allowed to continue the episode. The model is also given feedback and allowed to continue if its code produces errors. 
-			In our environment, we do not provide per step rewards. Instead, we simply reward at the end of the trajectory depending on whether or not the model produced the correct answer. Correct answers are assigned a score of 1.0 and incorrect scores are assigned a score of 0.0. 
-            </div>
+			We selected this objective over PPO or other standard RL formulations due to its established efficacy in the Tinker-cookbook examples, particularly for multi-turn tool use and code generation. We also adhered to the default learning rates recommended by the Tinker API for Qwen3 without modification.
+			The training set is first shuffled and divided into batches of 32. For each problem in a batch, we generate a rollout group of 8 samples. We compute the advantage for each trajectory by subtracting the group’s average reward; this effectively reinforces trajectories that outperform their specific group peers.
+			In each episode, we initialize a fresh RLM REPL environment containing the context. The policy receives only the system prompt and the query, interacting via code blocks for up to ten turns. To ensure computational feasibility, we enforced a five-minute timeout on both sub-LLM queries and code execution. Without these constraints, early experiments showed individual episodes stalling for over an hour. If a timeout occurs, the model receives specific feedback and is permitted to continue.
+			We employ a sparse reward signal: the model is rewarded solely at the conclusion of the trajectory. Correct answers receive a score of 1.0, while incorrect answers receive 0.0.
+ 			</div>
 		    <div class="margin-right-block">
 					
 		    </div>
 		</div>	
 		
-		<div class="content-margin-container">
+		<!--<div class="content-margin-container">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
@@ -427,30 +424,189 @@
 		    <div class="margin-right-block">
 					A caption for the video could go here.
 		    </div>
-		</div>
+		</div>-->
 
-		<!--RESULTS Section-->
-
-		<div class="content-margin-container" id="implications_and_limitations">
+		<div class="content-margin-container">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
-						<h1>Implications and limitations</h1>
-						Let's end with some discussion of the implications and limitations.
+            <h1>Experiments</h1>
+				Using this RL environment, we perform an ablation study on both the Qwen3-8B and Qwen3-32B models. We include the Qwen3-32B model to further investigate the impact of model size on RLM effectiveness, while aiming to control for factors such as architecture design that might arise if we were to compare Qwen3-8B with models from other organizations. For each model, we evaluate a baseline performance on OOLONG trec_coarse samples with context sizes starting at 1024 tokens, and doubling up to the model’s maximum context window of ~32K. We then evaluate each model integrated with a base implementation of RLM on the same set of tre_coarse samples but increase the maximum context up to 64K tokens. Extending the max context beyond 32K tokens to give an initial indication on how well the LMs can handle contexts larger than their context windows. Lastly, we evaluate each model after training with the RL environment described above on trec_coarse samples with context sizes up to 64K. Across each experiment we measure the model’s performance using an exact string matching between the model’s final output and the ground truth answer after normalizing each according to the OOLONG dataset. From comparisons between the base RLM model and its RL-trained counterpart we aim to reveal the impact of RL on the model’s abilities to effectively use the RLM framework. Further comparisons with the baseline results examine under which conditions small LMs benefit from RLM. Finally, we analyze the recursive traces between the base RLM and RL trained RLM to understand the impact of RL on the models' strategic decisions for managing context.
+            
+			</div>
+		    <div class="margin-right-block">
+
+			</div>
+		</div>	
+
+		<!--RESULTS Section-->
+
+		<div class="content-margin-container" id="results">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+						<h1>Results & Discussion</h1>
 		    </div>
 		    <div class="margin-right-block">
 		    </div>
 		</div>
 
+		<!--Trace Analysis Section -->
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Trace Analysis</h1>
+				We first analyzed notable traces from both successful and failed trajectories on the OOLONG trec_coarse tasks.
+				<br/>
+				<br/>
+				LLM Baseline
+				<br/>
+				Due to context constraints, the LLM-only evaluation was restricted to a 16k limit. While the model performed internal reasoning over the data points, it exhibited a high rate of classification error. Our analysis indicates that these failures stem from excessive self-doubt: the model frequently second-guesses itself, altering its classification as the reasoning trace extends. We observed no other quantitative anomalies correlated with context size.
+				<br/>
+				<br/>
+				RLM Dynamics
+				<br/>
+				We observed substantial performance degradation during the RLM experiments, driven by two primary behaviors. First, the model tended to saturate its own context window. Despite output truncation safeguards, the model persisted in recursively printing large chunks of context data into the REPL. Second, the model struggled with unlabeled data. When queried to quantify attributes like "spam," it frequently entered a refusal loop, claiming that "without explicit labels... it is impossible to determine frequency," rather than attempting the necessary classification.
+				Crucially, the model often identifies a valid strategy: using code to chunk the context and delegating classification to a sub-LM. However, the execution is brittle. The model often makes rigid assumptions about the sub-LM's output, for example, expecting a single word (e.g., "abbreviation"), and fails when the sub-LM returns a full sentence, invalidating an otherwise correct strategy.
+				<img id = "trace_ex" src="./imgs/Trace_example.png", alt="Figure 3: Example output trace"/>
+				A significant source of failure during the RLM evaluation stemmed from code and API timeouts. To prevent evaluation times from exploding, we enforced a strict five-minute cap on execution. Unfortunately, this penalized trajectories that showed genuine reasoning promise, such as iterating through content or managing sub-LM calls, resulting in scores of zero simply because the process exceeded the time limit.
+				<br/>
+				<br/>
+				RLM RL
+				While the RL baseline suffered from standard issues like context exhaustion, we observed a unique emergent behavior: the model began iteratively designing code exclusively within the REPL format. This approach generates numerous code blocks in a single response. Because the current RLM setup executes every code block sequentially, the cumulative runtime of 10 or more redundant blocks inevitably triggers a timeout.
+				Furthermore, the model remains susceptible to context exhaustion, often exacerbated by the redundant printing of verbose content within these blocks. It also remains constrained by unpredictable API latency. Most notably, however, we observed instances where the model devised a viable strategy, yet stochastic variability in the sub-LM calls introduced slight numerical inaccuracies, causing the final answer to drift.
+
+			</div>
+		    <div class="margin-right-block">
+				Figure 3: Example output trace using RLM where the model first splits lines into questions then uses a recursive call to categorize questions <a href="trace_ex">[3]</a>
+			</div>
+		</div>	
+
+		<!--Quantitative Analysis -->
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Quantitative Analysis</h1>
+				<br/>
+				<img id = "8b_base" src="./imgs/8b_llm.png", alt="Figure 4: Baseline Results for Qwen3-8b"/>
+				<br/>
+				The base LLM demonstrates somewhat decent performance on tasks requiring up to 16k context, achieving a mean score of 34% across all context sizes without exhibiting significant signs of context degradation. While this trails the 50–80% range achieved by frontier models on the full OOLONG synthetic dataset (at 1k–16k), the model’s performance remains consistent with expectations for its class.
+				<br/>
+				<img id = "8b_rlm" src = "./imgs/8b_rlm.png", alt="Figure 5: RLM Results for Qwen3-8b"/>
+				<br/>
+				Unexpectedly, applying the RL framework yielded a significant performance degradation. We observed an average drop of 62%, with the most severe regression, an 88% decline, occurring at the 4k context length. Qualitatively, the model struggled with the absence of discrete labels, resulting in context overload and generation steps wasted on redundant content indexing. The framework also introduced new operational failures, including frequent iteration exhaustions and code execution timeouts. We hypothesize that the 8B base model, lacking prior SFT or RL, possesses insufficient “RLM reasoning prior” to navigate this framework, leading it to pursue futile and inefficient trajectories. We investigated why the model did not simply ingest the full context and reason directly. We attribute this behavior to the RLM system prompt, which strongly biases the model toward tool usage inadvertently diverting it into unproductive reasoning trajectories.
+				<br/>
+				Due to persistent infrastructure challenges, including frequent restarts, API instability, and rate limits, the Qwen3-8B training run was truncated, completing only 16 of the planned 21 steps. Despite this partial run, we observed marginal gains in long-context tasks, with performance improving by 6% at the 32k context window and approximately 3% at 64k. We also found that RL successfully recovered some of the accuracy lost when applying the RLM framework. Post-RL, the model showed improvement at shorter contexts; however, it still underperformed the baseline LLM at longer contexts. While these results provide a 'proof of signal' that RL can drive improvement, they also suggest that our current environment configuration, hyperparameters, and training length remain suboptimal. We provide the reward trajectory for our 8B RL run and notice that it is quite noisy. It generally increases, but it is still rather noisy and we never see the reward plateau. 
+				<br/>
+				<img id="8b_rl_rlm" src="./imgs/RL_RLM_8B_ALL.png", alt="Figure 6: RLM RL Results for Qwen3-8b"/>
+				<img id="rl_reward" src="./imgs/total_rewards_8b.png", alt="Figure 7: RL Rewards plot"/>
+				<br/>
+				We also conducted a similar RL run for Qwen3-32B. We theorized that a larger model would eliminate some of the basic understanding driven failure modes we noticed with 8B. The base 32B model has much stronger baselines at LLM-only inference compared to the 8B. Yet, similar to the 8B model, adding the RLM framework causes accuracy degradation over all context lengths. Due to time constraints we were only able to run the 32B RL RLM on 16-65K context lengths. Yet, similar to the 8B model we notice an improvement after training. In this case, we notice an oddity that the performance at 16K tokens decreased, but training doubled the accuracy at 32K and 65K context sizes. We note again that this model was not trained to completion and missed a few steps of training. Yet, this corroborates the idea that the RLM framework isn’t always positive but its accuracy degradation can be recovered.
+				<br/>
+				<br/>
+				<img id="32b_rlm" src="./imgs/32B_RLM.png", alt = "Figure 8: RLM RL Results for Qwen3-32b"/>
+				</div>
+		    <div class="margin-right-block">
+				Figure 4: Baseline results show models performance relatively well when able to accept the full context as input <a href="8b_base">[4]</a>
+				<br/>
+				<br/>
+				Figure 5: Base RLM results show models performance drops significantly across all context lengths <a href="8b_rlm">[5]</a>
+				<br/>
+				<br/>
+				Figure 6: After training RLM using RL, results show that Qwen3-8b was able to recover performance across context lengths. 
+				Mostly notabily performance over contexts of 1024 tokens surpases that of the baseline. 
+				Improvements on context lengths over ~32K show promising potential for RL to elicit good recursion strategies <a href="8b_rlm_rl">[6]</a>
+				<br/>
+				<br/>
+				Figure 7: Baseline, Base RLM, and RL trained RLM results for Qwen3-32B <a href="32b_rlm">[7]</a>
+				<br/>
+				<br/>
+			</div>
+		</div>	
+
+		<div class="content-margin-container" id="implications_and_limitations">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+						<h1>Limitations & Implications</h1>
+		    </div>
+		    <div class="margin-right-block">
+		    </div>
+		</div>
+
+		<!--Limitations-->
+
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Limitations</h1>
+				We acknowledge one of the major limitations to our results arises due to the number of RL steps we trained the RLM models for. Given for each rollout the RLM can make multiple recursive calls, RLM completions tend to greatly increase the generation time from seconds to minutes and at times hours. Consequently we could only complete a relatively small number of RL steps to the RLM models and remained in the realm where the total rewards fluctuated around a value. While we employed execution timeouts, penalizing excessive code generation and excessive thinking, we believe that our runs still constituted being in the early stages of extracting benefits from RL. We realize that this ends up killing potential signals that may boost learning the necessary priors to successfully use the RLM framework. As a result, we hypothesize that the number of RL steps we ran were likely not sufficient for the model to solidify good strategies from those rollouts that generated positive signals. Additionally, we acknowledge that further exploration into the reward system used for RL is crucial to determining how best to elicit good recursive strategies. Our approach takes a binary rewards view to rewarding correct answers and penalizing incorrect answers and problematic behaviors. However, we hypothesize that using more detailed rewards, for example, penalizing based on the number of recursive calls to encourage using efficient recursive strategies could be more beneficial to elicit good behavior.
+			</div>
+		    <div class="margin-right-block">
+
+			</div>
+		</div>	
+
+		<!-- Implications and Future Works-->
+		<div class="content-margin-container">
+				<div class="margin-left-block">
+				</div>
+		    <div class="main-content-block">
+            <h1>Implications & Future Works</h1>
+				Our experiments demonstrate a tangible barrier preventing small open models from effectively utilizing the RLM framework out-of-the-box, though our results suggest that targeted RL or SFT interventions could bridge this gap. Crucially, this work highlights the extreme sensitivity of the RL environment. Balancing reward design, stop conditions, and timeouts against the tension between model exploration and training runtime remains a formidable challenge. We believe that we would have outperformed the base LM had our training run finished. Yet, our graphs still show that our model's performance severely degrades as context length increases despite applying the RLM framework which we hoped would maintain its performance constant.
+				Due to the limited variety of rewards and problem types tested, it remains unclear whether the model developed robust RLM skills or simply learned to satisfy the specific constraints of the OOLONG benchmark. Yet, our traces imply that at times good RLM style strategies were employed.
+				RLMs are inherently more complex than standard LMs, requiring multi-step reasoning, code generation, and semantic commands for external models. While prior work confirms that frontier models can leverage this architecture effectively, our findings suggest that smaller models struggle to achieve parity. The increased inference overhead and structural complexity introduce numerous avenues for design inefficiencies and engineering bottlenecks. Ultimately, while RLMs hold immense promise, unlocking their full potential requires substantial investment in engineering and hyperparameter optimization for stable training.
+				We also believe that bootstrapping with "golden" RLM traces from frontier models, such as GPT-5, could prove useful. Conducting a short, targeted SFT run on these expert trajectories would establish stronger priors, teaching the model to navigate the RLM framework effectively from the outset. We hypothesize that this initialization would refine the model’s reasoning strategies earlier, yielding superior performance in both the pre- and post-RL stages.
+				Moving forward, we plan to refine the RL environment to better handle execution latency. Rather than enforcing rigid per-step timeouts, we propose implementing a global trajectory time budget. In this setup, the wall time of each step is deducted from a total allocation until the budget is exhausted or a final answer is reached, allowing the model to allocate time more dynamically. 
+				We also see significant potential in shifting from sparse, binary outcomes to dense rewards. Future iterations could incentivize correct formatting and effective llm_query usage, while penalizing excessive REPL overhead on short-context tasks. This design space remains largely unexplored and offers a promising avenue for stabilizing training.
+				Finally, we intend to test diverse problem formulations to better understand the emergent strategies models use for task chunking. Regarding infrastructure, while the Tinker API provided a seamless interface for distributed training, persistent instability, including disconnects and rate limits, frequently disrupted our experiments. Resolving these reliability issues will be critical for scaling future runs.
+
+			</div>
+		    <div class="margin-right-block">
+
+			</div>
+		</div>	
+
 		<div class="content-margin-container" id="citations">
 				<div class="margin-left-block">
 				</div>
 		    <div class="main-content-block">
-						<div class='citation' id="references" style="height:auto"><br>
+						<div class='citation' id="references" style="height:auto">
 							<span style="font-size:16px">References:</span><br><br>
-							<a id="ref_1"></a>[1] <a href="https://en.wikipedia.org/wiki/Allegory_of_the_cave">Allegory of the Cave</a>, Plato, c. 375 BC<br><br>
-							<a id="ref_2"></a>[2] <a href="">A Human-Level AGI</a>, OpenAI, 2025<br><br>
+
+							<a id="ref_1"></a>[1] 
+							An, C., Zhang, J., Zhong, M., Li, L., Gong, S., Luo, Y., Xu, J., & Kong, L. (2024). 
+							<a href="https://arxiv.org/abs/2410.18745">Why Does the Effective Context Length of LLMs Fall Short?</a> 
+							ArXiv.org.<br><br>
+
+							<a id="ref_2"></a>[2] 
+							Bertsch, A., Pratapa, A., Mitamura, T., Neubig, G., & Gormley, M. R. (2025). 
+							<a href="https://arxiv.org/abs/2511.02817">Oolong: Evaluating Long Context Reasoning and Aggregation Capabilities</a>. 
+							ArXiv.org.<br><br>
+
+							<a id="ref_3"></a>[3] 
+							Chen, S., Wong, S. H., Chen, L., & Tian, Y. (2023). 
+							<a href="https://doi.org/10.48550/arxiv.2306.15595">Extending Context Window of Large Language Models via Positional Interpolation</a>. 
+							ArXiv (Cornell University).<br><br>
+
+							<a id="ref_4"></a>[4] 
+							<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">
+							Effective context engineering for AI agents</a>. (2025). Anthropic.com.<br><br>
+
+							<a id="ref_5"></a>[5] 
+							Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F., & Liang, P. (2024). 
+							<a href="https://doi.org/10.1162/tacl_a_00638">Lost in the Middle: How Language Models Use Long Contexts</a>. 
+							Transactions of the Association for Computational Linguistics, 12, 157–173.<br><br>
+
+							<a id="ref_6"></a>[6] 
+							Zhang, A. L. (2025). 
+							<a href="https://alexzhang13.github.io/blog/2025/rlm/">Recursive Language Models</a>. 
+							Alex L. Zhang.<br><br>
 						</div>
+
 		    </div>
 		    <div class="margin-right-block">
             <!-- margin notes for reference block here -->
